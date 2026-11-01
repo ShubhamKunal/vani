@@ -191,7 +191,8 @@ class NativeSpeechRecognitionService implements SpeechRecognitionService {
     } else if (status == 'notListening' || status == 'done') {
       _soundLevelController.add(0.0);
       if (_userIntendsListening && !_isPaused) {
-        _updateState(SpeechRecognitionState.processing);
+        // Maintain continuous 'listening' state during hardware recycling.
+        // Avoid flashing 'PROCESSING...' on 60ms silence timeouts or ambient fan noise.
         _scheduleSessionRestart();
       } else if (_isPaused) {
         _updateState(SpeechRecognitionState.paused);
@@ -252,6 +253,11 @@ class NativeSpeechRecognitionService implements SpeechRecognitionService {
         ),
       );
       return;
+    }
+
+    // Only surface 'processing' if backing off after multiple consecutive hiccups
+    if (_consecutiveFailures > 1) {
+      _updateState(SpeechRecognitionState.processing);
     }
 
     final backoff = Duration(milliseconds: 150 * _consecutiveFailures);

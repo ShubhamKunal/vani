@@ -15,6 +15,7 @@ class CaptionController extends ChangeNotifier {
   final List<TranscriptSegment> _segments = [];
   TranscriptSegment? _interimSegment;
   double _micGainLevel = 0.0;
+  final ValueNotifier<double> micLevelNotifier = ValueNotifier<double>(0.0);
   SpeechRecognitionState _engineState = SpeechRecognitionState.idle;
   String? _errorMessage;
   bool _isAutoScrollEnabled = true;
@@ -95,7 +96,7 @@ class CaptionController extends ChangeNotifier {
 
     _soundLevelSub = speechService.soundLevelStream.listen((level) {
       _micGainLevel = level;
-      notifyListeners();
+      micLevelNotifier.value = level;
     });
 
     _errorSub = speechService.errorStream.listen((error) {
@@ -190,6 +191,7 @@ class CaptionController extends ChangeNotifier {
     _transcriptSub?.cancel();
     _soundLevelSub?.cancel();
     _errorSub?.cancel();
+    micLevelNotifier.dispose();
     _applyWakelock(false);
     super.dispose();
   }

@@ -302,7 +302,12 @@ class _LiveCaptionScreenState extends State<LiveCaptionScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   StatusPill(state: widget.captionController.engineState),
-                  TactileMicMeter(level: widget.captionController.micGainLevel),
+                  ValueListenableBuilder<double>(
+                    valueListenable: widget.captionController.micLevelNotifier,
+                    builder: (context, level, child) {
+                      return TactileMicMeter(level: level);
+                    },
+                  ),
                 ],
               ),
             ),
